@@ -180,9 +180,12 @@ static irqreturn_t tps65217_irq(int irq, void *irq_data)
                 /* Handle AC power status change */
                 dev_dbg(tps->dev, "AC power status change\n");
                 /* Press KEY_POWER when AC not present */
+                /* Bluerover fix: do not press key power */
+                /*
                 input_report_key(tps->pwr_but, KEY_POWER,
                                 ~status_reg & TPS65217_STATUS_ACPWR);
                 input_sync(tps->pwr_but);
+                */
         }
         if (int_reg & TPS65217_INT_USBI) {
                 /* Handle USB power status change */
