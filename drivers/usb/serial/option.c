@@ -508,6 +508,12 @@ static void option_instat_callback(struct urb *urb);
 #define VIATELECOM_VENDOR_ID			0x15eb
 #define VIATELECOM_PRODUCT_CDS7			0x0001
 
+/* Quectel products */
+#define QUECTEL_VENDOR_ID       0x05C6
+#define QUECTEL_PRODUCT_UC15       0x9090
+#define QUECTEL_PRODUCT_UC20       0x9003
+#define QUECTEL_PRODUCT_EC20       0x9215
+
 /* some devices interfaces need special handling due to a number of reasons */
 enum option_blacklist_reason {
 		OPTION_BLACKLIST_NONE = 0,
@@ -617,6 +623,9 @@ static const struct option_blacklist_info telit_le920_blacklist = {
 };
 
 static const struct usb_device_id option_ids[] = {
+  { USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC20) },
+  { USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_UC15) },
+  { USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_UC20) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
@@ -1818,6 +1827,7 @@ static struct usb_serial_driver option_1port_device = {
 	.suspend           = usb_wwan_suspend,
 	.resume            = usb_wwan_resume,
 #endif
+  .reset_resume      = usb_wwan_resume
 };
 
 static struct usb_serial_driver * const serial_drivers[] = {
@@ -1884,6 +1894,12 @@ static int option_probe(struct usb_serial *serial,
 	    iface_desc->bInterfaceClass != USB_CLASS_CDC_DATA)
 		return -ENODEV;
 
+  if (serial->dev->descriptor.idVendor == 0x05C6 && serial->dev->descriptor.idProduct == 0x9003 
+    && serial->interface->cur_altsetting->desc.bInterfaceNumber == 4)
+    return -ENODEV;
+  if (serial->dev->descriptor.idVendor == 0x05C6 && serial->dev->descriptor.idProduct == 0x9215 
+    && serial->interface->cur_altsetting->desc.bInterfaceNumber == 4)
+    return -ENODEV;
 	/* Store device id so we can use it during attach. */
 	usb_set_serial_data(serial, (void *)id);
 
