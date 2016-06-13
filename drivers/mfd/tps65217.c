@@ -182,38 +182,41 @@ static const struct of_device_id tps65217_of_match[] = {
 
 static irqreturn_t tps65217_irq(int irq, void *irq_data)
 {
-	struct tps65217 *tps = irq_data;
-	unsigned int int_reg = 0, status_reg = 0;
+        struct tps65217 *tps = irq_data;
+        unsigned int int_reg = 0, status_reg = 0;
 
-	tps65217_reg_read(tps, TPS65217_REG_INT, &int_reg);
-	tps65217_reg_read(tps, TPS65217_REG_STATUS, &status_reg);
-	if (status_reg)
-		dev_dbg(tps->dev, "status now: 0x%X\n", status_reg);
+        tps65217_reg_read(tps, TPS65217_REG_INT, &int_reg);
+        tps65217_reg_read(tps, TPS65217_REG_STATUS, &status_reg);
+        if (status_reg)
+                dev_dbg(tps->dev, "status now: 0x%X\n", status_reg);
 
-	if (!int_reg)
-		return IRQ_NONE;
+        if (!int_reg)
+                return IRQ_NONE;
 
-	if (int_reg & TPS65217_INT_PBI) {
-		/* Handle push button */
-		dev_dbg(tps->dev, "power button status change\n");
-		input_report_key(tps->pwr_but, KEY_POWER,
-				status_reg & TPS65217_STATUS_PB);
-		input_sync(tps->pwr_but);
-	}
-	if (int_reg & TPS65217_INT_ACI) {
-		/* Handle AC power status change */
-		dev_dbg(tps->dev, "AC power status change\n");
-		/* Press KEY_POWER when AC not present */
-		input_report_key(tps->pwr_but, KEY_POWER,
-				~status_reg & TPS65217_STATUS_ACPWR);
-		input_sync(tps->pwr_but);
-	}
-	if (int_reg & TPS65217_INT_USBI) {
-		/* Handle USB power status change */
-		dev_dbg(tps->dev, "USB power status change\n");
-	}
+        if (int_reg & TPS65217_INT_PBI) {
+                /* Handle push button */
+                dev_dbg(tps->dev, "power button status change\n");
+                input_report_key(tps->pwr_but, KEY_POWER,
+                                status_reg & TPS65217_STATUS_PB);
+                input_sync(tps->pwr_but);
+        }
+        if (int_reg & TPS65217_INT_ACI) {
+                /* Handle AC power status change */
+                dev_dbg(tps->dev, "AC power status change\n");
+                /* Press KEY_POWER when AC not present */
+                /* Bluerover fix: do not press key power */
+                /*
+                input_report_key(tps->pwr_but, KEY_POWER,
+                                ~status_reg & TPS65217_STATUS_ACPWR);
+                input_sync(tps->pwr_but);
+                */
+        }
+        if (int_reg & TPS65217_INT_USBI) {
+                /* Handle USB power status change */
+                dev_dbg(tps->dev, "USB power status change\n");
+        }
 
-	return IRQ_HANDLED;
+        return IRQ_HANDLED;
 }
 
 static int tps65217_probe_pwr_but(struct tps65217 *tps)
